@@ -1,209 +1,1942 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Startup Success Prediction</title>
+    <title>StartupIQ | Success Predictor</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 0;
+        :root {
+            --bg: #080f20;
+            --panel: #101b33;
+            --panel2: #14223e;
+            --border: #293b60;
+            --text: #f1f5ff;
+            --muted: #9baccb;
+            --purple: #7565f6;
+            --green: #25d6ad;
+            --red: #fb7898;
         }
 
-        .container {
-            width: 80%;
-            max-width: 700px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .description {
-            text-align: center;
-            color: #555;
-            margin-bottom: 30px;
-        }
-
-        label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
+        * {
             box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    ellipse at top,
+                    #142650 0%,
+                    var(--bg) 55%
+                );
+            color: var(--text);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+        }
+
+        button,
+        input {
+            font: inherit;
         }
 
         button {
-            width: 100%;
-            margin-top: 25px;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            background-color: #333;
-            color: white;
-            font-size: 16px;
             cursor: pointer;
         }
 
-        button:hover {
-            background-color: #555;
+        /* =========================
+           MAIN LAYOUT
+        ========================== */
+
+        .app {
+            display: grid;
+            grid-template-columns: 225px minmax(0, 1fr);
+            min-height: 100vh;
+            max-width: 1600px;
+            margin: auto;
         }
 
-        .result {
-            margin-top: 25px;
-            padding: 15px;
-            text-align: center;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: bold;
+        /* =========================
+           SIDEBAR
+        ========================== */
+
+        .sidebar {
+            padding: 28px 18px;
+            background: rgba(5, 12, 28, 0.88);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
         }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            color: var(--purple);
+            font-size: 31px;
+            font-weight: 900;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 19px;
+        }
+
+        .brand-sub {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .nav {
+            display: grid;
+            gap: 9px;
+        }
+
+        .nav button {
+            width: 100%;
+            margin: 0;
+            padding: 13px 12px;
+            text-align: left;
+            color: var(--muted);
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            transition: 0.2s;
+        }
+
+        .nav button.active,
+        .nav button:hover {
+            color: white;
+            background: #29285f;
+            border-color: #5149b4;
+        }
+
+        .sidebar-note {
+            margin-top: auto;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           MAIN CONTENT
+        ========================== */
+
+        main {
+            padding: 32px;
+            min-width: 0;
+        }
+
+        .topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: #b5adff;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: clamp(27px, 3vw, 38px);
+            margin: 10px 0;
+        }
+
+        h2 {
+            font-size: 19px;
+            margin: 0 0 8px;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        /* =========================
+           STEP INDICATOR
+        ========================== */
+
+        .step-indicator {
+            display: flex;
+            gap: 9px;
+            align-items: center;
+        }
+
+        .step-dot {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .step-dot.active {
+            background: var(--purple);
+            color: white;
+            border-color: var(--purple);
+        }
+
+        /* =========================
+           CARDS
+        ========================== */
+
+        .card {
+            background: linear-gradient(
+                145deg,
+                var(--panel),
+                #0c172c
+            );
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 24px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+            min-width: 0;
+        }
+
+        /* =========================
+           FORM
+        ========================== */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                2,
+                minmax(0, 1fr)
+            );
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 650;
+            margin-bottom: 9px;
+        }
+
+        .field input {
+            width: 100%;
+            min-width: 0;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #34496f;
+            background: #091329;
+            color: white;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .field input::placeholder {
+            color: #7183a6;
+        }
+
+        .field input:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px #7565f626;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        /* =========================
+           BUTTONS
+        ========================== */
+
+        .btn {
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 13px 18px;
+            background: #182644;
+            color: white;
+            cursor: pointer;
+            font-weight: 650;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(
+                100deg,
+                #6558ec,
+                #8870ff
+            );
+            border-color: #8274ff;
+        }
+
+        .btn-block {
+            width: 100%;
+            margin-top: 25px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+
+        .button-row .btn {
+            flex: 1;
+        }
+
+        /* =========================
+           HIDDEN
+        ========================== */
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* =========================
+           RESULT
+        ========================== */
+
+        .result-banner {
+            padding: 23px;
+            border-radius: 12px;
+            border: 1px solid #285e59;
+            background: linear-gradient(
+                110deg,
+                #10352f,
+                #10253a
+            );
+            display: flex;
+            align-items: center;
+            gap: 17px;
+            margin: 22px 0;
+        }
+
+        .result-banner.unsuccessful {
+            border-color: #784058;
+            background: linear-gradient(
+                110deg,
+                #392034,
+                #211b35
+            );
+        }
+
+        .result-icon {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--green);
+            color: #06271f;
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .unsuccessful .result-icon {
+            background: var(--red);
+        }
+
+        .result-status {
+            font-size: 23px;
+            font-weight: 850;
+            color: var(--green);
+            margin-top: 5px;
+        }
+
+        .unsuccessful .result-status {
+            color: var(--red);
+        }
+
+        /* =========================
+           STATISTICS
+        ========================== */
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                2,
+                minmax(0, 1fr)
+            );
+            gap: 18px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-size: 27px;
+            font-weight: 800;
+            margin-top: 12px;
+        }
+
+        .green {
+            color: var(--green);
+        }
+
+        .red {
+            color: var(--red);
+        }
+
+        /* =========================
+           CHARTS
+        ========================== */
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                2,
+                minmax(0, 1fr)
+            );
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .chart-box {
+            position: relative;
+            height: 285px;
+            margin-top: 15px;
+        }
+
+        .chart-box canvas {
+            max-width: 100%;
+        }
+
+        /* =========================
+           NOTES
+        ========================== */
 
         .note {
+            font-size: 12px;
+            color: #8193b5;
             margin-top: 20px;
-            text-align: center;
-            font-size: 13px;
-            color: #777;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @media (max-width: 900px) {
+
+            .app {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                padding: 16px;
+                border-right: 0;
+                border-bottom: 1px solid var(--border);
+                gap: 16px;
+            }
+
+            .nav {
+                grid-template-columns: repeat(
+                    3,
+                    minmax(0, 1fr)
+                );
+            }
+
+            .nav button {
+                text-align: center;
+                font-size: 12px;
+            }
+
+            .sidebar-note {
+                display: none;
+            }
+
+            main {
+                padding: 22px 16px;
+            }
+        }
+
+        @media (max-width: 580px) {
+
+            .form-grid,
+            .chart-grid,
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: auto;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .topline {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .chart-box {
+                height: 250px;
+            }
+
+            .step-dot {
+                width: 29px;
+                height: 29px;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            .button-row .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
+<div class="app">
 
-        <h1>Startup Success Prediction</h1>
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
 
-        <p class="description">
-            Enter startup information to predict the startup outcome.
-        </p>
+    <aside class="sidebar">
 
-        <form method="POST">
+        <div class="brand">
 
-            <!-- Total Funding -->
+            <div class="brand-icon">▥</div>
 
-            <label for="funding">
-                Total Funding (USD)
-            </label>
+            <div>
+                <div class="brand-name">
+                    StartupIQ
+                </div>
 
-            <input
-                type="number"
-                id="funding"
-                name="funding"
-                placeholder="Example: 5000000"
-                step="any"
-                required
-            >
-
-
-            <!-- Funding Rounds -->
-
-            <label for="rounds">
-                Number of Funding Rounds
-            </label>
-
-            <input
-                type="number"
-                id="rounds"
-                name="rounds"
-                placeholder="Example: 5"
-                min="0"
-                required
-            >
-
-
-            <!-- Milestones -->
-
-            <label for="milestones">
-                Number of Milestones
-            </label>
-
-            <input
-                type="number"
-                id="milestones"
-                name="milestones"
-                placeholder="Example: 3"
-                min="0"
-                required
-            >
-
-
-            <!-- Relationships -->
-
-            <label for="relationships">
-                Number of Relationships
-            </label>
-
-            <input
-                type="number"
-                id="relationships"
-                name="relationships"
-                placeholder="Example: 10"
-                min="0"
-                required
-            >
-
-
-            <!-- Average Participants -->
-
-            <label for="participants">
-                Average Participants
-            </label>
-
-            <input
-                type="number"
-                step="any"
-                id="participants"
-                name="participants"
-                placeholder="Example: 2.5"
-                min="0"
-                required
-            >
-
-
-            <!-- Prediction Button -->
-
-            <button type="submit">
-                Predict Startup Success
-            </button>
-
-
-            <!-- Prediction Result -->
-
-            {% if prediction %}
-
-            <div class="result">
-                {{ prediction }}
+                <div class="brand-sub">
+                    Startup Success Predictor
+                </div>
             </div>
 
-            {% endif %}
+        </div>
 
-        </form>
+        <nav class="nav" aria-label="Main navigation">
+
+            <button
+                type="button"
+                class="nav-btn"
+                data-page="1"
+            >
+                ▤ &nbsp; Startup information
+            </button>
+
+            <button
+                type="button"
+                class="nav-btn"
+                data-page="2"
+            >
+                ◉ &nbsp; Prediction result
+            </button>
+
+            <button
+                type="button"
+                class="nav-btn"
+                data-page="3"
+            >
+                ▥ &nbsp; Analytics
+            </button>
+
+        </nav>
+
+        <div class="sidebar-note">
+
+            ✦ Better insights for a brighter startup future.
+
+            <br><br>
+
+            Your prediction is generated using your existing
+            machine-learning model.
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main>
+
+        <div class="topline">
+
+            <div>
+
+                <div
+                    class="eyebrow"
+                    id="pageEyebrow"
+                >
+                    01 / INPUT
+                </div>
+
+                <h1 id="pageHeading">
+                    Startup Success Prediction
+                </h1>
+
+                <p id="pageDescription">
+                    Enter your startup information to predict
+                    the startup outcome.
+                </p>
+
+            </div>
+
+            <div
+                class="step-indicator"
+                aria-label="Page progress"
+            >
+
+                <span
+                    class="step-dot"
+                    data-dot="1"
+                >
+                    1
+                </span>
+
+                <span
+                    class="step-dot"
+                    data-dot="2"
+                >
+                    2
+                </span>
+
+                <span
+                    class="step-dot"
+                    data-dot="3"
+                >
+                    3
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             PAGE 1
+        ========================== -->
+
+        <section
+            id="page1"
+            class="page"
+        >
+
+            <div class="card">
+
+                <h2>
+                    Startup information
+                </h2>
+
+                <p>
+                    Provide the business metrics used by
+                    the prediction model.
+                </p>
+
+                <form
+                    method="POST"
+                    action="/predict"
+                    id="startupForm"
+                >
+
+                    <div class="form-grid">
+
+                        <!-- FUNDING -->
+
+                        <div class="field">
+
+                            <label for="funding">
+                                Total Funding (USD)
+                            </label>
+
+                            <input
+                                type="number"
+                                id="funding"
+                                name="funding_total_usd"
+                                placeholder="Example: 5000000"
+                                step="any"
+                                min="0"
+                                value="{{ request.form.get('funding_total_usd', '') }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <!-- FUNDING ROUNDS -->
+
+                        <div class="field">
+
+                            <label for="rounds">
+                                Number of Funding Rounds
+                            </label>
+
+                            <input
+                                type="number"
+                                id="rounds"
+                                name="funding_rounds"
+                                placeholder="Example: 5"
+                                min="0"
+                                step="1"
+                                value="{{ request.form.get('funding_rounds', '') }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <!-- MILESTONES -->
+
+                        <div class="field">
+
+                            <label for="milestones">
+                                Number of Milestones
+                            </label>
+
+                            <input
+                                type="number"
+                                id="milestones"
+                                name="milestones"
+                                placeholder="Example: 3"
+                                min="0"
+                                step="1"
+                                value="{{ request.form.get('milestones', '') }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <!-- RELATIONSHIPS -->
+
+                        <div class="field">
+
+                            <label for="relationships">
+                                Number of Relationships
+                            </label>
+
+                            <input
+                                type="number"
+                                id="relationships"
+                                name="relationships"
+                                placeholder="Example: 10"
+                                min="0"
+                                step="1"
+                                value="{{ request.form.get('relationships', '') }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <!-- PARTICIPANTS -->
+
+                        <div class="field full">
+
+                            <label for="participants">
+                                Average Participants
+                            </label>
+
+                            <input
+                                type="number"
+                                id="participants"
+                                name="avg_participants"
+                                placeholder="Example: 2.5"
+                                min="0"
+                                step="any"
+                                value="{{ request.form.get('avg_participants', '') }}"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-block"
+                    >
+                        ✦ &nbsp; Predict Startup Success &nbsp; →
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <p class="note">
+                Your startup information is processed by
+                the existing Random Forest model.
+            </p>
+
+        </section>
+
+
+        <!-- =========================
+             PAGE 2
+        ========================== -->
+
+        <section
+            id="page2"
+            class="page hidden"
+        >
+
+            <div class="card">
+
+                <div class="eyebrow">
+                    PREDICTION RESULT
+                </div>
+
+                <h2 style="margin-top:10px">
+                    Your prediction
+                </h2>
+
+                <p>
+                    Here is the result generated from your
+                    submitted startup information.
+                </p>
+
+
+                <!-- RESULT -->
+
+                <div
+                    class="result-banner"
+                    id="resultBanner"
+                >
+
+                    <div
+                        class="result-icon"
+                        id="resultIcon"
+                    >
+                        ✓
+                    </div>
+
+                    <div>
+
+                        <div class="stat-label">
+                            Predicted outcome
+                        </div>
+
+                        <div
+                            class="result-status"
+                            id="resultStatus"
+                        >
+                            Waiting for prediction
+                        </div>
+
+                        <p style="margin:6px 0 0">
+                            Result returned by your existing
+                            Random Forest model.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PROBABILITY CARDS -->
+
+            <div
+                class="stats-grid"
+                style="margin-top:20px"
+            >
+
+                <div class="card">
+
+                    <div class="stat-label">
+                        Success probability
+                    </div>
+
+                    <div
+                        class="stat-value green"
+                        id="successValue"
+                    >
+                        {{ success_probability|default(0, true) }}%
+                    </div>
+
+                    <p>
+                        Estimated probability of success.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="stat-label">
+                        Unsuccessful probability
+                    </div>
+
+                    <div
+                        class="stat-value red"
+                        id="failureValue"
+                    >
+                        {{ unsuccessful_probability|default(0, true) }}%
+                    </div>
+
+                    <p>
+                        Estimated probability of an
+                        unsuccessful outcome.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- PREDICTION CHART -->
+
+            <div
+                class="card"
+                style="margin-top:20px"
+            >
+
+                <h2>
+                    Prediction probabilities
+                </h2>
+
+                <p>
+                    Compare the model's probability
+                    estimates for both outcomes.
+                </p>
+
+                <div class="chart-box">
+                    <canvas id="predictionChart"></canvas>
+                </div>
+
+            </div>
+
+
+            <div class="button-row">
+
+                <button
+                    class="btn"
+                    type="button"
+                    onclick="goToPage(1)"
+                >
+                    ← Edit inputs
+                </button>
+
+                <button
+                    class="btn btn-primary"
+                    type="button"
+                    onclick="goToPage(3)"
+                >
+                    View analytics →
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PAGE 3
+        ========================== -->
+
+        <section
+            id="page3"
+            class="page hidden"
+        >
+
+            <div class="card">
+
+                <h2>
+                    Startup outcome analytics
+                </h2>
+
+                <p>
+                    Explore the two outcome probabilities
+                    for this prediction and the metrics
+                    entered for this startup.
+                </p>
+
+            </div>
+
+
+            <div class="chart-grid">
+
+                <!-- DOUGHNUT -->
+
+                <div class="card">
+
+                    <h2>
+                        Outcome probability split
+                    </h2>
+
+                    <p>
+                        Successful vs. unsuccessful
+                        for this prediction.
+                    </p>
+
+                    <div class="chart-box">
+                        <canvas id="outcomeChart"></canvas>
+                    </div>
+
+                </div>
+
+
+                <!-- COMPARISON -->
+
+                <div class="card">
+
+                    <h2>
+                        Probability comparison
+                    </h2>
+
+                    <p>
+                        Percentage assigned to each
+                        outcome by the model.
+                    </p>
+
+                    <div class="chart-box">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- METRICS -->
+
+            <div
+                class="card"
+                style="margin-top:20px"
+            >
+
+                <h2>
+                    Submitted startup metrics
+                </h2>
+
+                <p>
+                    Compare the values you entered.
+                    These are input values, not
+                    feature importance.
+                </p>
+
+                <div class="chart-box">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+
+            </div>
+
+
+            <!-- SUMMARY -->
+
+            <div
+                class="card"
+                style="margin-top:20px"
+            >
+
+                <h2>
+                    Your prediction summary
+                </h2>
+
+                <div class="stats-grid">
+
+                    <div>
+
+                        <div class="stat-label">
+                            Predicted outcome
+                        </div>
+
+                        <div
+                            class="stat-value"
+                            id="summaryOutcome"
+                        >
+                            Waiting for prediction
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="stat-label">
+                            Success probability
+                        </div>
+
+                        <div class="stat-value green">
+                            {{ success_probability|default(0, true) }}%
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <p class="note">
+                    These charts describe this individual
+                    prediction and its submitted metrics.
+                    Dataset-wide successful/unsuccessful
+                    counts require the actual labeled
+                    dataset and are not inferred from
+                    one prediction.
+                </p>
+
+            </div>
+
+
+            <div class="button-row">
+
+                <button
+                    class="btn"
+                    type="button"
+                    onclick="goToPage(2)"
+                >
+                    ← Prediction result
+                </button>
+
+                <button
+                    class="btn btn-primary"
+                    type="button"
+                    onclick="goToPage(1)"
+                >
+                    New prediction
+                </button>
+
+            </div>
+
+        </section>
+
 
         <p class="note">
-            This prediction is generated using a Random Forest machine learning model.
+            This prediction is generated using a
+            Random Forest machine-learning model.
+            Probabilities are estimates, not guarantees
+            of a startup's future outcome.
         </p>
 
-    </div>
+    </main>
+
+    <div
+        id="flask-data"
+        data-has-prediction="{{ 'true' if prediction is defined and prediction else 'false' }}"
+        data-success-probability="{{ success_probability|default(0, true) }}"
+        data-unsuccessful-probability="{{ unsuccessful_probability|default(0, true) }}"
+        data-funding-total-usd="{{ request.form.get('funding_total_usd', 0) | default(0, true) | float }}"
+        data-funding-rounds="{{ request.form.get('funding_rounds', 0) | default(0, true) | float }}"
+        data-milestones="{{ request.form.get('milestones', 0) | default(0, true) | float }}"
+        data-relationships="{{ request.form.get('relationships', 0) | default(0, true) | float }}"
+        data-avg-participants="{{ request.form.get('avg_participants', 0) | default(0, true) | float }}"
+        hidden
+    ></div>
+
+</div>
+
+
+<!-- =========================
+     JAVASCRIPT
+========================== -->
+
+<script>
+
+    /* =========================
+       FLASK DATA
+    ========================== */
+
+    const flaskData = document.getElementById("flask-data");
+
+    const hasPrediction = flaskData.dataset.hasPrediction === "true";
+
+    const successProbability = Number(
+        flaskData.dataset.successProbability || 0
+    );
+
+    const unsuccessfulProbability = Number(
+        flaskData.dataset.unsuccessfulProbability || 0
+    );
+
+    /* =========================
+       PAGE INFORMATION
+    ========================== */
+
+    const pageInfo = {
+
+        1: {
+            eyebrow: "01 / INPUT",
+            heading: "Startup Success Prediction",
+            description:
+                "Enter your startup information to predict the startup outcome."
+        },
+
+        2: {
+            eyebrow: "02 / PREDICTION",
+            heading: "Your prediction",
+            description:
+                "View the outcome and the model's estimated probabilities."
+        },
+
+        3: {
+            eyebrow: "03 / ANALYTICS",
+            heading: "Startup outcome analytics",
+            description:
+                "Explore prediction probabilities and your submitted metrics."
+        }
+
+    };
+
+
+    /* =========================
+       CHART STORAGE
+    ========================== */
+
+    const charts = {};
+
+
+    /* =========================
+       PAGE NAVIGATION
+    ========================== */
+
+    function goToPage(page) {
+
+        /*
+         * Do not allow prediction/analytics
+         * before a prediction exists.
+         */
+
+        if (page !== 1 && !hasPrediction) {
+            return;
+        }
+
+
+        /*
+         * Hide all pages.
+         */
+
+        document
+            .querySelectorAll(".page")
+            .forEach(function(section) {
+
+                section.classList.add("hidden");
+
+            });
+
+
+        /*
+         * Show selected page.
+         */
+
+        const activePage =
+            document.getElementById("page" + page);
+
+        if (activePage) {
+
+            activePage.classList.remove("hidden");
+
+        }
+
+
+        /*
+         * Update sidebar buttons.
+         */
+
+        document
+            .querySelectorAll(".nav-btn")
+            .forEach(function(button) {
+
+                button.classList.toggle(
+                    "active",
+                    Number(button.dataset.page) === page
+                );
+
+            });
+
+
+        /*
+         * Update step indicators.
+         */
+
+        document
+            .querySelectorAll(".step-dot")
+            .forEach(function(dot) {
+
+                dot.classList.toggle(
+                    "active",
+                    Number(dot.dataset.dot) === page
+                );
+
+            });
+
+
+        /*
+         * Update heading.
+         */
+
+        document.getElementById(
+            "pageEyebrow"
+        ).textContent =
+            pageInfo[page].eyebrow;
+
+
+        document.getElementById(
+            "pageHeading"
+        ).textContent =
+            pageInfo[page].heading;
+
+
+        document.getElementById(
+            "pageDescription"
+        ).textContent =
+            pageInfo[page].description;
+
+
+        /*
+         * Resize charts when page becomes visible.
+         */
+
+        if (page === 2 || page === 3) {
+
+            requestAnimationFrame(function() {
+
+                Object.values(charts).forEach(
+                    function(chart) {
+
+                        if (chart) {
+                            chart.resize();
+                        }
+
+                    }
+                );
+
+            });
+
+        }
+
+
+        /*
+         * Scroll to top.
+         */
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    }
+
+
+    /* =========================
+       SIDEBAR BUTTON EVENTS
+    ========================== */
+
+    document
+        .querySelectorAll(".nav-btn")
+        .forEach(function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    goToPage(
+                        Number(button.dataset.page)
+                    );
+
+                }
+            );
+
+        });
+
+
+    /* =========================
+       CHART SETTINGS
+    ========================== */
+
+    const chartText = "#dce6ff";
+    const chartGrid = "#293b60";
+
+    Chart.defaults.color = chartText;
+
+    Chart.defaults.font.family =
+        'Inter, "Segoe UI", Arial, sans-serif';
+
+
+    const commonOptions = {
+
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        plugins: {
+
+            legend: {
+
+                labels: {
+                    color: chartText,
+                    padding: 18
+                }
+
+            }
+
+        }
+
+    };
+
+
+    /* =========================
+       CREATE CHARTS ONLY
+       WHEN PREDICTION EXISTS
+    ========================== */
+
+    if (hasPrediction) {
+
+
+        /* =========================
+           PAGE 2 BAR CHART
+        ========================== */
+
+        const predictionCanvas =
+            document.getElementById(
+                "predictionChart"
+            );
+
+
+        if (predictionCanvas) {
+
+            charts.prediction =
+                new Chart(
+                    predictionCanvas,
+                    {
+
+                        type: "bar",
+
+                        data: {
+
+                            labels: [
+                                "Successful",
+                                "Unsuccessful"
+                            ],
+
+                            datasets: [{
+
+                                label: "Probability (%)",
+
+                                data: [
+                                    successProbability,
+                                    unsuccessfulProbability
+                                ],
+
+                                backgroundColor: [
+                                    "#25d6ad",
+                                    "#fb7898"
+                                ],
+
+                                borderRadius: 7,
+
+                                maxBarThickness: 90
+
+                            }]
+
+                        },
+
+                        options: {
+
+                            ...commonOptions,
+
+                            scales: {
+
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+
+                                y: {
+
+                                    beginAtZero: true,
+
+                                    max: 100,
+
+                                    grid: {
+                                        color: chartGrid
+                                    },
+
+                                    title: {
+
+                                        display: true,
+
+                                        text: "Probability (%)"
+
+                                    }
+
+                                }
+
+                            },
+
+                            plugins: {
+
+                                legend: {
+                                    display: false
+                                },
+
+                                tooltip: {
+
+                                    callbacks: {
+
+                                        label: function(context) {
+
+                                            return context.raw + "%";
+
+                                        }
+
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        /* =========================
+           OUTCOME DOUGHNUT
+        ========================== */
+
+        const outcomeCanvas =
+            document.getElementById(
+                "outcomeChart"
+            );
+
+
+        if (outcomeCanvas) {
+
+            charts.outcome =
+                new Chart(
+                    outcomeCanvas,
+                    {
+
+                        type: "doughnut",
+
+                        data: {
+
+                            labels: [
+                                "Successful",
+                                "Unsuccessful"
+                            ],
+
+                            datasets: [{
+
+                                data: [
+                                    successProbability,
+                                    unsuccessfulProbability
+                                ],
+
+                                backgroundColor: [
+                                    "#25d6ad",
+                                    "#fb7898"
+                                ],
+
+                                borderColor: "#101b33",
+
+                                borderWidth: 4,
+
+                                hoverOffset: 8
+
+                            }]
+
+                        },
+
+                        options: {
+
+                            ...commonOptions,
+
+                            cutout: "68%"
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        /* =========================
+           COMPARISON CHART
+        ========================== */
+
+        const comparisonCanvas =
+            document.getElementById(
+                "comparisonChart"
+            );
+
+
+        if (comparisonCanvas) {
+
+            charts.comparison =
+                new Chart(
+                    comparisonCanvas,
+                    {
+
+                        type: "bar",
+
+                        data: {
+
+                            labels: [
+                                "Successful",
+                                "Unsuccessful"
+                            ],
+
+                            datasets: [{
+
+                                label: "Probability (%)",
+
+                                data: [
+                                    successProbability,
+                                    unsuccessfulProbability
+                                ],
+
+                                backgroundColor: [
+                                    "#25d6ad",
+                                    "#fb7898"
+                                ],
+
+                                borderRadius: 7
+
+                            }]
+
+                        },
+
+                        options: {
+
+                            ...commonOptions,
+
+                            indexAxis: "y",
+
+                            scales: {
+
+                                x: {
+
+                                    beginAtZero: true,
+
+                                    max: 100,
+
+                                    grid: {
+                                        color: chartGrid
+                                    },
+
+                                    title: {
+
+                                        display: true,
+
+                                        text: "Probability (%)"
+
+                                    }
+
+                                },
+
+                                y: {
+
+                                    grid: {
+                                        display: false
+                                    }
+
+                                }
+
+                            },
+
+                            plugins: {
+
+                                legend: {
+                                    display: false
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        /* =========================
+           INPUT METRICS
+        ========================== */
+
+        const metricLabels = [
+
+            "Funding (USD)",
+            "Funding rounds",
+            "Milestones",
+            "Relationships",
+            "Average participants"
+
+        ];
+
+
+
+        const metricValues = [
+            Number(flaskData.dataset.fundingTotalUsd || 0),
+            Number(flaskData.dataset.fundingRounds || 0),
+            Number(flaskData.dataset.milestones || 0),
+            Number(flaskData.dataset.relationships || 0),
+            Number(flaskData.dataset.avgParticipants || 0)
+        ];
+
+        /* =========================
+           METRICS CHART
+        ========================== */
+
+        const metricsCanvas =
+            document.getElementById(
+                "metricsChart"
+            );
+
+
+        if (metricsCanvas) {
+
+            charts.metrics =
+                new Chart(
+                    metricsCanvas,
+                    {
+
+                        type: "bar",
+
+                        data: {
+
+                            labels: metricLabels,
+
+                            datasets: [{
+
+                                label: "Submitted value",
+
+                                data: metricValues,
+
+                                backgroundColor: "#7565f6",
+
+                                borderRadius: 6
+
+                            }]
+
+                        },
+
+                        options: {
+
+                            ...commonOptions,
+
+                            indexAxis: "y",
+
+                            scales: {
+
+                                x: {
+
+                                    beginAtZero: true,
+
+                                    grid: {
+                                        color: chartGrid
+                                    }
+
+                                },
+
+                                y: {
+
+                                    grid: {
+                                        display: false
+                                    }
+
+                                }
+
+                            },
+
+                            plugins: {
+
+                                legend: {
+                                    display: false
+                                }
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+
+
+        /* =========================
+           RESULT STATUS
+        ========================== */
+
+        const resultStatus =
+            document.getElementById(
+                "resultStatus"
+            );
+
+
+        const resultBanner =
+            document.getElementById(
+                "resultBanner"
+            );
+
+
+        const resultIcon =
+            document.getElementById(
+                "resultIcon"
+            );
+
+
+        const summaryOutcome =
+            document.getElementById(
+                "summaryOutcome"
+            );
+
+
+        /*
+         * Determine result from probability.
+         */
+
+        const isUnsuccessful =
+            unsuccessfulProbability >
+            successProbability;
+
+
+        if (isUnsuccessful) {
+
+            if (resultBanner) {
+
+                resultBanner.classList.add(
+                    "unsuccessful"
+                );
+
+            }
+
+
+            if (resultIcon) {
+
+                resultIcon.textContent = "!";
+
+            }
+
+
+            if (resultStatus) {
+
+                resultStatus.textContent =
+                    "Unsuccessful";
+
+                resultStatus.classList.add("red");
+
+                resultStatus.classList.remove("green");
+
+            }
+
+
+            if (summaryOutcome) {
+
+                summaryOutcome.textContent =
+                    "Unsuccessful";
+
+                summaryOutcome.classList.add("red");
+
+            }
+
+        } else {
+
+            if (resultBanner) {
+
+                resultBanner.classList.remove(
+                    "unsuccessful"
+                );
+
+            }
+
+
+            if (resultIcon) {
+
+                resultIcon.textContent = "✓";
+
+            }
+
+
+            if (resultStatus) {
+
+                resultStatus.textContent =
+                    "Successful";
+
+                resultStatus.classList.remove("red");
+
+                resultStatus.classList.add("green");
+
+            }
+
+
+            if (summaryOutcome) {
+
+                summaryOutcome.textContent =
+                    "Successful";
+
+                summaryOutcome.classList.remove("red");
+
+                summaryOutcome.classList.add("green");
+
+            }
+
+        }
+
+
+        /*
+         * Open prediction page automatically.
+         */
+
+        goToPage(2);
+    }
+    else
+    {
+
+        /*
+         * No prediction yet.
+         * Show the input page.
+         */
+
+        goToPage(1);
+
+    }
+
+</script>
 
 </body>
-
 </html>

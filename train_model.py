@@ -1,139 +1,78 @@
-import pandas as pd
+"""Train the startup-success model used by the Flask app.
+
+This project stores the trained artifacts in the model/ folder using the exact
+names expected by app.py:
+    startup_success_model.pkl
+    imputer.pkl
+    feature_columns.pkl
+"""
+
+import os
+
 import joblib
-
-from sklearn.model_selection import train_test_split
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
 
-
-# ==========================================
-# 1. Load prepared dataset
-# ==========================================
-
-df = pd.read_csv("data/prepared_startup_data.csv")
-
-print("=" * 50)
-print("STARTUP SUCCESS PREDICTION - MODEL TRAINING")
-print("=" * 50)
-
-print("\nDataset shape:")
-print(df.shape)
-
-
-# ==========================================
-# 2. Select features
-# ==========================================
-
-features = [
+DATA_PATH = "data/prepared_startup_data.csv"
+MODEL_DIR = "model"
+FEATURES = [
     "funding_total_usd",
     "funding_rounds",
     "milestones",
     "relationships",
-    "avg_participants"
+    "avg_participants",
 ]
-
-X = df[features]
-y = df["success"]
-
-print("\nSelected Features:")
-for feature in features:
-    print("-", feature)
-
-print("\nTarget: success")
+TARGET_COLUMN = "success"
 
 
-# ==========================================
-# 3. Handle missing values
-# ==========================================
+def main():
+    if not os.path.exists(DATA_PATH):
+        raise SystemExit(
+            f"Could not find {DATA_PATH}. Run prepare_data.py first to generate "
+            "the prepared CSV."
+        )
 
-print("\nHandling missing values...")
+    df = pd.read_csv(DATA_PATH)
+    missing = [column for column in FEATURES + [TARGET_COLUMN] if column not in df.columns]
+    if missing:
+        raise SystemExit(
+            "The CSV is missing expected columns: "
+            f"{missing}. Check the dataset schema."
+        )
 
-imputer = SimpleImputer(strategy="median")
+    df = df[FEATURES + [TARGET_COLUMN]].copy()
+    df[TARGET_COLUMN] = df[TARGET_COLUMN].astype(int)
 
-X = pd.DataFrame(
-    imputer.fit_transform(X),
-    columns=features
-)
+    X = df[FEATURES]
+    y = df[TARGET_COLUMN]
 
-print("Missing values handled successfully!")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
 
+    imputer = SimpleImputer(strategy="median")
+    X_train_imputed = imputer.fit_transform(X_train)
+    X_test_imputed = imputer.transform(X_test)
 
-# ==========================================
-# 4. Split dataset
-# ==========================================
+    model = RandomForestClassifier(
+        n_estimators=200,
+        random_state=42,
+        class_weight="balanced",
+    )
+    model.fit(X_train_imputed, y_train)
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.20,
-    random_state=42,
-    stratify=y
-)
+    accuracy = model.score(X_test_imputed, y_test)
+    print(f"Validation accuracy: {accuracy:.3f}")
 
-print("\nTraining records:", len(X_train))
-print("Testing records:", len(X_test))
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    joblib.dump(model, os.path.join(MODEL_DIR, "startup_success_model.pkl"))
+    joblib.dump(imputer, os.path.join(MODEL_DIR, "imputer.pkl"))
+    joblib.dump(FEATURES, os.path.join(MODEL_DIR, "feature_columns.pkl"))
 
-
-# ==========================================
-# 5. Train Random Forest model
-# ==========================================
-
-print("\nTraining Random Forest model...")
-
-model = RandomForestClassifier(
-    n_estimators=200,
-    random_state=42
-)
-
-model.fit(X_train, y_train)
-
-print("Model trained successfully!")
-
-
-# ==========================================
-# 6. Evaluate model
-# ==========================================
-
-y_pred = model.predict(X_test)
-
-accuracy = accuracy_score(y_test, y_pred)
-
-print("\nModel Accuracy:")
-print(round(accuracy, 4))
-
-print("\nClassification Report:")
-print(classification_report(y_test, y_pred))
-
-print("\nConfusion Matrix:")
-print(confusion_matrix(y_test, y_pred))
+    print(f"Saved model artifacts to {MODEL_DIR}/")
 
 
-# ==========================================
-# 7. Save model
-# ==========================================
-
-print("\nSaving model...")
-
-joblib.dump(
-    model,
-    "model/startup_success_model.pkl"
-)
-
-joblib.dump(
-    imputer,
-    "model/imputer.pkl"
-)
-
-joblib.dump(
-    features,
-    "model/feature_columns.pkl"
-)
-
-print("\nModel saved successfully!")
-print("Imputer saved successfully!")
-print("Feature columns saved successfully!")
-
-print("\n" + "=" * 50)
-print("TRAINING COMPLETED")
-print("=" * 50)
+if __name__ == "__main__":
+    main()
